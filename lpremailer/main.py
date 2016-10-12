@@ -26,13 +26,13 @@ def parse_params(params):
 
 
 def object_hook(obj):
-    result = {} 
+    result = {}
     for key, value in obj.items():
         if type(value) == unicode and 'lambda' in value:
             result[key] = eval(value)
         else:
             result[key] = value
-    return result 
+    return result
 
 
 class LiveUndefined(Undefined):
@@ -43,7 +43,7 @@ class LiveUndefined(Undefined):
 
 class JsonGenerator():
     def __init__(self, devpostfix):
-        self.devpostfix = devpostfix 
+        self.devpostfix = devpostfix
 
     def generate(self):
         for filename in os.listdir(HERE):
@@ -70,7 +70,7 @@ class RenderHandler(FileSystemEventHandler):
         self.j2_loader = FileSystemLoader('.')
         self.j2_undefined = Undefined
         self.j2_env = Environment(loader=self.j2_loader, undefined=LiveUndefined)
-        
+
     def on_modified(self, event):
         self.event = event
         self.path = os.path.dirname(self.event.src_path)
@@ -106,7 +106,7 @@ class RenderHandler(FileSystemEventHandler):
         filepath = os.path.join(self.path, '{}.html'.format(filename))
         with open(filepath, 'w+') as f:
             transformed = transform(self.html) 
-            f.write(self.html)
+            f.write(transformed)
 
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
@@ -137,7 +137,7 @@ class RenderHandler(FileSystemEventHandler):
                     </html>
                 """)
             else:
-                transformed = transform(rendered) 
+                transformed = transform(rendered)
                 f.write(transformed)
 
 
@@ -186,7 +186,7 @@ class LivePremailer():
 
     def bsync_command(self):
         return 'browser-sync start {}'.format(parse_params(self.BSYNC_PARAMS))
-        
+
     def run_bsync(self):
         self.bsync = subprocess.Popen(self.bsync_command(), shell=True)
 
