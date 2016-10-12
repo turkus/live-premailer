@@ -91,7 +91,10 @@ class RenderHandler(FileSystemEventHandler):
     def parse_json(self):
         json_filename = '{}.json'.format(self.filebase)
         with open(os.path.join(self.path, json_filename), 'r') as fjson: 
-            self.data = json.load(fjson, object_hook=object_hook)
+            try:
+                self.data = json.load(fjson, object_hook=object_hook)
+            except ValueError:
+                logging.warning('Your json file is invalid.')
 
     def prepare_html(self):
         filepath = os.path.join(self.path, '{}.html'.format(self.filebase))
@@ -113,8 +116,8 @@ class RenderHandler(FileSystemEventHandler):
             template = self.j2_env.from_string(self.html)
             try:
                 rendered = template.render(**self.data)
-            except AttributeError:
-                logging.info('Please correct errors in your json file.')
+            except UndefinedError, AttributeError:
+                logging.warning('Please correct errors in your json file.')
                 f.write("""
                     <html>
                       <head>
@@ -195,8 +198,8 @@ class LivePremailer():
             return
 
         self.BSYNC_PARAMS['ss'] = self.args.staticdir
-        if not self.BSYNC_PARAMS['ss']:
-            logging.info('Static files won\'t be served.')
+        if not os.path.exists(self.args.staticdir):
+            logging.warning('Static files won\'t be served.')
 
         self.start_observer()
         self.run_bsync()
