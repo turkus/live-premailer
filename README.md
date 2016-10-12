@@ -1,9 +1,26 @@
 Live premailer
 ==============
-:Info: Live premailer for jinja2 templates
-:Repository: https://github.com/turkus/live-premailer
-:Author: Wojciech Rola
-:Maintainer: Wojciech Rola
+
+<pre>
+<table>
+  <tr>
+    <td>Info:</td>
+    <td>Live premailer for jinja2 templates</td>
+  <tr/>
+  <tr>
+    <td>Repository:</td>
+    <td>https://github.com/turkus/live-premailer</td>
+  <tr/>
+  <tr>
+    <td>Author:</td>
+    <td>Wojciech Rola</td>
+  <tr/>
+  <tr>
+    <td>Maintainer:</td>
+    <td>Wojciech Rola</td>
+  <tr/>
+</table>
+</pre>
 
 Why live?
 ---------
