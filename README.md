@@ -233,4 +233,4 @@ Troubleshooting
 
 If you run init with custom devpostfix then use the same when running server. Otherwise it won't work.
 
-Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}``.
+Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}`` (see examples above).
