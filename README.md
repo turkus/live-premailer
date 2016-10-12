@@ -234,3 +234,12 @@ Troubleshooting
 If you run init with custom devpostfix then use the same when running server. Otherwise it won't work.
 
 Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}`` (see examples above).
+
+
+To be continued...
+------------------
+
+- rerender templates which include other templates after their edit
+- rerender after editing css files
+- create instant schema in json files according to variables in templates
+- bulk render
