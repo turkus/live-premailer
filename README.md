@@ -243,3 +243,4 @@ To be continued...
 - rerender after editing css files
 - create instant schema in json files according to variables in templates
 - bulk render
+- use other template engines
