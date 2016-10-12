@@ -115,7 +115,25 @@ class RenderHandler(FileSystemEventHandler):
                 rendered = template.render(**self.data)
             except AttributeError:
                 logging.info('Please correct errors in your json file.')
-                f.write('<html><head></head><body></body></html>')
+                f.write("""
+                    <html>
+                      <head>
+                        <style>
+                          .failed {
+                            margin-top: 100px;
+                            font-size: 24px;
+                            text-align: center;
+                            font-weight: bolder;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <div class='failed'>
+                            Parsing failed! Please check console and fix errors.
+                        </div>
+                      </body>
+                    </html>
+                """)
             else:
                 transformed = transform(rendered) 
                 f.write(transformed)
