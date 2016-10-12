@@ -117,7 +117,7 @@ And following templates:
 {% endraw %}
 ```
 
-You have to remember that live premailer script operates in path where is executed. So if you want to create premailed template you have to be in console under the same path where your devs templates exists, so:
+You have to remember that live premailer script operates in path where is executed. So if you want to create premailed template you have to be in the console under the same path where your devs templates exists, so:
 
 ```
 myproject
@@ -182,7 +182,13 @@ So how to handle it? Just by editing json file ``greetings_dev.json``:
 Now focus! When we are talking about simple variables like strings, numbers everything is obvious, but when we have a function, sometimes we pass different arguments, especially when serving statics. 
 
 So what python ``lambda`` does here?
-In our case it just takes argument and returns it. So in "live" template we will see:
+In our case it just takes argument and returns it. So in "live" template instead of:
+
+```html
+<img src="request.static_url('static/img/logo.jpg')" alt="Live premailer" width="128" height="33">
+```
+
+we will see:
 
 ```html
 <img src="static/img/logo.jpg" alt="Live premailer" width="128" height="33">
@@ -226,4 +232,5 @@ Troubleshooting
 ---------------
 
 If you run init with custom devpostfix then use the same when running server. Otherwise it won't work.
+
 Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}``.
