@@ -9,7 +9,7 @@ Live premailer
   <tr/>
   <tr>
     <td>Repository:</td>
-    <td>https://github.com/turkus/live-premailer</td>
+    <td><a href="https://github.com/turkus/live-premailer">https://github.com/turkus/live-premailer</a></td>
   <tr/>
   <tr>
     <td>Author:</td>
