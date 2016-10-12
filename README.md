@@ -31,13 +31,14 @@ Everytime we want to create and test mail templates, where Jinja2 template engin
 Installation
 ------------
 
-```
-pip install live-premailer
+```bash
+$ pip install live-premailer
 ```
 
 To provide live preview we need to install also:
-```
-npm install browsersync@2.17.2
+
+```bash
+$ install browsersync@2.17.2
 ```
 
 Let's do it!
@@ -64,7 +65,7 @@ And following templates:
 
 ``_mail_footer.html``
 
-```
+```html
 {% raw %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -88,7 +89,7 @@ And following templates:
 
 ``greetings_dev.html``
 
-```
+```html
 {% include '_mail_header.html' %}
 {% raw %}
 <td class="main-content" colspan="2">
@@ -104,7 +105,7 @@ And following templates:
 
 ``_mail_footer.html``
 
-```
+```html
 {% raw %}
             </tr>
             <tr>
@@ -133,12 +134,12 @@ myproject
         └── _mail_header.html
 ```
 
-```
+```bash
 $ cd myproject/templates/mail
 ```
 At the beginning we need to run init:
 
-```
+```bash
 $ lpremailer init
 ```
 
@@ -157,7 +158,7 @@ Json files are for json representation of variables which occur in templates whe
 
 Next step is run simple server based on ``browsersync`` package:
 
-```
+```bash
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject 
 ```
 
@@ -169,7 +170,7 @@ We see that we have in our ``greetings_dev.html`` variable ``{{ name }}``, but w
 
 So how to handle it? Just by editing json file ``greetings_dev.json``:
 
-```
+```json
 {
     "name": "turkus",
     "request": {
@@ -183,7 +184,7 @@ Now focus! When we are talking about simple variables like strings, numbers ever
 So what python ``lambda`` does here?
 In our case it just takes argument and returns it. So in "live" template we will see:
 
-```
+```html
 <img src="static/img/logo.jpg" alt="Live premailer" width="128" height="33">
 ```
 
@@ -191,9 +192,8 @@ After saving data in ``greetings_dev.json`` browser will reload directory listin
 
 So for developing you can go to (or click ``greetings_dev_live.html`` on a browser page):
 
-```
-http://localhost:3000/greetings_dev_live.html
-```
+[http://localhost:3000/greetings_dev_live.html](http://localhost:3000/greetings_dev_live.html)
+
 and see the result. Each edit of ``greetings_dev.html`` and ``greetings.json`` file reloads preview.
 
 If you will see:
@@ -213,12 +213,12 @@ Configuration
 
 You can define your own devpostfix (default is ``_dev``) and livepostfix (default is ``_live``), by using proper options:
 
-```
+```bash
 $ lpremailer init --devpostfix=_whateverdev
 ```
 and according to init:
 
-```
+```bash
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --devpostfix=_whateverdev --livepostfix=_whateverlive
 ```
 
