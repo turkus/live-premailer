@@ -63,7 +63,7 @@ myproject
 
 And following templates:
 
-``_mail_footer.html``
+``_mail_header.html``
 
 ```html
 {% raw %}
