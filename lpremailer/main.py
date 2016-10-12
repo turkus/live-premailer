@@ -3,7 +3,6 @@ import logging
 import json
 import os
 import subprocess
-import sys
 import time
 
 from jinja2 import FileSystemLoader, Undefined
@@ -116,7 +115,7 @@ class RenderHandler(FileSystemEventHandler):
             template = self.j2_env.from_string(self.html)
             try:
                 rendered = template.render(**self.data)
-            except UndefinedError, AttributeError:
+            except (UndefinedError, AttributeError):
                 logging.warning('Please correct errors in your json file.')
                 f.write("""
                     <html>
