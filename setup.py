@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
+from distutils.core import setup
 
 
 setup(
     name='live-premailer',
-    packages=find_packages,
-    version='0.1.2',
+    packages=['lpremailer'],
+    version='0.1.3',
     description='Live premailer for jinja2 templates',
     author='turkus',
     author_email='wojciechrola@wp.pl',
