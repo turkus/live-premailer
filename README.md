@@ -207,7 +207,7 @@ Each edit of ``greetings_dev.html`` and ``greetings.json`` file applies changes 
 Debug
 -----
 
-Console will inform you about each error in human readable way:
+Console will inform you about each error in human-readable way:
 
 ```
 One of variables is missing in your json:
