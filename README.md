@@ -200,7 +200,9 @@ So for developing you can go to (or click ``greetings_dev_live.html`` on a brows
 
 [http://localhost:3000/greetings_dev_live.html](http://localhost:3000/greetings_dev_live.html)
 
-and see the result. Each edit of ``greetings_dev.html`` and ``greetings.json`` file reloads preview.
+and see the result. 
+
+Each edit of ``greetings_dev.html`` and ``greetings.json`` file applies changes to live and final version of mail template and reloads live preview.
 
 Debug
 -----
@@ -217,8 +219,6 @@ or tell you that everything is fine:
 ```
 Everthing is OK
 ```
-
-After completing all variables in your json file your live preview will adjust these changes automatically.
 
 Configuration
 -------------
