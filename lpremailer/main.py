@@ -3,19 +3,31 @@ import logging
 import json
 import os
 import subprocess
+import sys
 import time
 
-from jinja2 import FileSystemLoader, Undefined
+from jinja2 import FileSystemLoader
 from jinja2.environment import Environment
-from jinja2.exceptions import UndefinedError
+from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 from premailer import transform
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 HERE = os.getcwd()
 PARSER_INIT = 'init'
 PARSER_RUN = 'runserver'
+
+DEV_HISTORY = set()
+ERRORS = {
+    AttributeError: '\nBad value for key in your json:\n{}\n',
+    ValueError: 'Your json file is invalid:\n{}\n',
+    TemplateSyntaxError: '\nSomething is wrong with your template:\n{}\n',
+    UndefinedError: '\nOne of variables is missing in your json::\n{}\n',
+}
 
 
 ## UTILS ##
@@ -35,10 +47,14 @@ def object_hook(obj):
     return result
 
 
-class LiveUndefined(Undefined):
-    def _fail_with_undefined_error(self, *args, **kwargs):
-        msg = '\nMissing in your json file: {}\n'.format(self._undefined_name)
-        logging.warning(msg)
+def handle_errors(f):
+    try:
+        f()
+    except Exception as e:
+        msg = ERRORS.get(type(e))
+        logging.error(msg.format(e.message))
+        return False
+    return True
 
 
 class JsonGenerator():
@@ -68,8 +84,9 @@ class RenderHandler(FileSystemEventHandler):
         self.devpostfix = cmd_args.devpostfix
         self.livepostfix = cmd_args.livepostfix
         self.j2_loader = FileSystemLoader('.')
-        self.j2_undefined = Undefined
-        self.j2_env = Environment(loader=self.j2_loader, undefined=LiveUndefined)
+        self.j2_env = Environment(loader=self.j2_loader)
+        self.f_sequence = [
+                self.parse_json, self.prepare_html, self.premail, self.live_html]
 
     def on_modified(self, event):
         self.event = event
@@ -78,10 +95,11 @@ class RenderHandler(FileSystemEventHandler):
 
         if not self.event.is_directory and self.filebase.endswith(self.devpostfix)\
            and self.ext in self.RELOAD_ON_EXT:
-            self.parse_json()
-            self.prepare_html()
-            self.premail()
-            self.live_html()
+            for f in self.f_sequence:
+                if not handle_errors(f):
+                    break
+            else:
+                logging.info('\nEverything is OK')
 
     def filename_splitext(self): 
         filename = os.path.basename(self.event.src_path)
@@ -90,10 +108,7 @@ class RenderHandler(FileSystemEventHandler):
     def parse_json(self):
         json_filename = '{}.json'.format(self.filebase)
         with open(os.path.join(self.path, json_filename), 'r') as fjson: 
-            try:
-                self.data = json.load(fjson, object_hook=object_hook)
-            except ValueError:
-                logging.warning('Your json file is invalid.')
+            self.data = json.load(fjson, object_hook=object_hook)
 
     def prepare_html(self):
         filepath = os.path.join(self.path, '{}.html'.format(self.filebase))
@@ -104,41 +119,18 @@ class RenderHandler(FileSystemEventHandler):
     def premail(self):
         filename = self.filebase.replace(self.devpostfix, '')
         filepath = os.path.join(self.path, '{}.html'.format(filename))
+        transformed = transform(self.html)
         with open(filepath, 'w+') as f:
-            transformed = transform(self.html) 
             f.write(transformed)
 
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
         filepath = os.path.join(self.path, filename)
+        template = self.j2_env.from_string(self.html)
+        rendered = template.render(**self.data)
+        transformed = transform(rendered)
         with open(filepath, 'w+') as f:
-            template = self.j2_env.from_string(self.html)
-            try:
-                rendered = template.render(**self.data)
-            except (UndefinedError, AttributeError):
-                logging.warning('Please correct errors in your json file.')
-                f.write("""
-                    <html>
-                      <head>
-                        <style>
-                          .failed {
-                            margin-top: 100px;
-                            font-size: 24px;
-                            text-align: center;
-                            font-weight: bolder;
-                          }
-                        </style>
-                      </head>
-                      <body>
-                        <div class='failed'>
-                            Parsing failed! Please check console and fix errors.
-                        </div>
-                      </body>
-                    </html>
-                """)
-            else:
-                transformed = transform(rendered)
-                f.write(transformed)
+            f.write(transformed)
 
 
 class LivePremailer():
@@ -177,12 +169,28 @@ class LivePremailer():
         self.args = parser.parse_args()
 
     def json_files(self):
-        JsonGenerator(self.args.devpostfix).generate()
+        if self.args.which == PARSER_INIT:
+            JsonGenerator(self.args.devpostfix).generate()
+            sys.exit(1)
+
+    def observe_paths(self):
+        return self.BSYNC_PARAMS['files'].split(',')
 
     def start_observer(self):
-        self.observer = Observer()
-        self.observer.schedule(RenderHandler(self.args), HERE, recursive=True)
+        paths = self.observe_paths()
+        self.observer = PollingObserver()
+        self.observer.should_keep_running()
+        for path in paths:
+            self.observer.schedule(RenderHandler(self.args), path, recursive=True)
         self.observer.start()
+
+    def update_bsync_params(self):
+        if not os.path.exists(self.args.staticdir):
+            logging.warning('Static files won\'t be maintained/served.')
+            return
+        files = ','.join((self.BSYNC_PARAMS['files'], self.args.staticdir))
+        self.BSYNC_PARAMS['files'] = files
+        self.BSYNC_PARAMS['ss'] = self.args.staticdir
 
     def bsync_command(self):
         return 'browser-sync start {}'.format(parse_params(self.BSYNC_PARAMS))
@@ -192,14 +200,8 @@ class LivePremailer():
 
     def run(self):
         self.parse_args()
-        if self.args.which == PARSER_INIT:
-            self.json_files()
-            return
-
-        self.BSYNC_PARAMS['ss'] = self.args.staticdir
-        if not os.path.exists(self.args.staticdir):
-            logging.warning('Static files won\'t be served.')
-
+        self.json_files()
+        self.update_bsync_params()
         self.start_observer()
         self.run_bsync()
         try:

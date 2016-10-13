@@ -202,14 +202,20 @@ So for developing you can go to (or click ``greetings_dev_live.html`` on a brows
 
 and see the result. Each edit of ``greetings_dev.html`` and ``greetings.json`` file reloads preview.
 
-If you will see:
+Debug
+-----
 
-**Parsing failed! Please check console and fix errors.**
-
-console will inform you which variable/function is missing in json file:
+Console will inform you about each error in human readable way:
 
 ```
-Missing in your json file: request
+One of variables is missing in your json:
+'request' is undefined
+```
+
+or tell you that everything is fine:
+
+```
+Everthing is OK
 ```
 
 After completing all variables in your json file your live preview will adjust these changes automatically.
