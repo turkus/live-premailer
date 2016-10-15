@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name='live-premailer',
     packages=['lpremailer'],
-    version='0.1.4',
+    version='0.1.5',
     description='Live premailer for jinja2 templates',
     author='turkus',
     author_email='wojciechrola@wp.pl',
@@ -16,7 +16,7 @@ setup(
             'lpremailer = lpremailer.main:main',
         ]
     },
-    install_requires=['jinja2', 'premailer', 'watchdog'],
+    install_requires=['jinja2', 'premailer', 'watchdog', 'six'],
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3'

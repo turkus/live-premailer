@@ -10,6 +10,7 @@ from jinja2 import FileSystemLoader
 from jinja2.environment import Environment
 from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 from premailer import transform
+from six import string_types
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
@@ -42,7 +43,7 @@ def parse_params(params):
 def object_hook(obj):
     result = {}
     for key, value in obj.items():
-        if type(value) == unicode and 'lambda' in value:
+        if isinstance(value, string_types) and u'lambda' in value:
             result[key] = eval(value)
         else:
             result[key] = value
