@@ -1,0 +1,6 @@
+{
+    "name": "guys",
+    "request": {
+    	"static_url": "lambda x: x"
+    }
+}
