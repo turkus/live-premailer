@@ -28,7 +28,8 @@ Why live?
 Everytime we want to create and test mail templates, where Jinja2 template engine is in use, we need to send them to see how it looks like. It's really annoying. So that's why this package exists.
 ``live-premailer`` package is for testing our mail frontend live, without sending unnecessary emails.
 
-[![LIVE DEMO](https://docs.google.com/uc?id=0Byh5x9fIozwxeDRGQThDX3AyNUE)](https://drive.google.com/open?id=0Byh5x9fIozwxdjZYRGdfakplOUU)
+See LIVE DEMO:
+[![LIVE DEMO](https://docs.google.com/uc?id=0Byh5x9fIozwxaGJKZFpqazFDREE)](https://drive.google.com/open?id=0Byh5x9fIozwxdjZYRGdfakplOUU)
 
 
 Installation
