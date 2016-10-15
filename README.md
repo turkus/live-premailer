@@ -207,7 +207,7 @@ Each edit of ``greetings_dev.html``, ``greetings.json`` and static files rebuild
 Debug
 -----
 
-Console will inform you about each error in human readable way:
+Console will inform you about each error in human-readable way:
 
 ```
 One of variables is missing in your json:
@@ -219,8 +219,6 @@ or tell you that everything is fine:
 ```
 /home/turkus/programming/myproject/templates/mail/greetings_dev.html...OK
 ```
-
-After completing all variables in your json file your live preview will adjust these changes automatically.
 
 Configuration
 -------------
