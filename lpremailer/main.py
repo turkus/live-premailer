@@ -21,12 +21,14 @@ HERE = os.getcwd()
 PARSER_INIT = 'init'
 PARSER_RUN = 'runserver'
 
-DEV_HISTORY = set()
+HISTORY_FILENAME = 'lpremailer.history'
+HISTORY_FILEPATH = '{}/{}'.format(HERE, HISTORY_FILENAME)
+
 ERRORS = {
-    AttributeError: '\nBad value for key in your json:\n{}\n',
-    ValueError: 'Your json file is invalid:\n{}\n',
-    TemplateSyntaxError: '\nSomething is wrong with your template:\n{}\n',
-    UndefinedError: '\nOne of variables is missing in your json::\n{}\n',
+    AttributeError: '\n{}\nBad value for key in your json:\n{}\n',
+    ValueError: '\n{}\nYour json file is invalid:\n{}\n',
+    TemplateSyntaxError: '\n{}\nSomething is wrong with your template:\n{}\n',
+    UndefinedError: '\n{}\nOne of variables is missing in your json::\n{}\n',
 }
 
 
@@ -45,16 +47,6 @@ def object_hook(obj):
         else:
             result[key] = value
     return result
-
-
-def handle_errors(f):
-    try:
-        f()
-    except Exception as e:
-        msg = ERRORS.get(type(e))
-        logging.error(msg.format(e.message))
-        return False
-    return True
 
 
 class JsonGenerator():
@@ -78,36 +70,136 @@ class JsonGenerator():
 
 ## MAIN ##
 class RenderHandler(FileSystemEventHandler):
-    RELOAD_ON_EXT = ('.html', '.json')
+    EXT_CSS = '.css'
+    EXT_HTML = '.html'
+    EXT_JSON = '.json'
+    EXTENSIONS = (EXT_CSS, EXT_HTML, EXT_JSON)
 
     def __init__(self, cmd_args):
+        self.history = set()
+        if cmd_args.loadhistory:
+            self.load_history()
         self.devpostfix = cmd_args.devpostfix
         self.livepostfix = cmd_args.livepostfix
+        self.postfixes = (self.livepostfix, self.devpostfix)
         self.j2_loader = FileSystemLoader('.')
         self.j2_env = Environment(loader=self.j2_loader)
-        self.f_sequence = [
-                self.parse_json, self.prepare_html, self.premail, self.live_html]
+        self.funcs_sequence = [self.parse_json, self.prepare_html,
+                               self.premail, self.live_html]
 
     def on_modified(self, event):
-        self.event = event
-        self.path = os.path.dirname(self.event.src_path)
-        self.filename_splitext()
+        if event.is_directory:
+            return
 
-        if not self.event.is_directory and self.filebase.endswith(self.devpostfix)\
-           and self.ext in self.RELOAD_ON_EXT:
-            for f in self.f_sequence:
-                if not handle_errors(f):
-                    break
-            else:
-                logging.info('\nEverything is OK')
+        filebase, ext = self.filename_splitext(event.src_path)
+        if ext not in self.EXTENSIONS:
+            return
 
-    def filename_splitext(self): 
-        filename = os.path.basename(self.event.src_path)
-        self.filebase, self.ext = os.path.splitext(filename)
+        if ext != self.EXT_HTML:
+            if ext == self.EXT_JSON:
+                filename = '{}.html'.format(filebase)
+                src_path = self.absolute_path(filename)
+                self.proceed(src_path)
+                return
+            if ext == self.EXT_CSS:
+                self.history_proceed()
+                return
+
+        if filebase.startswith('_'):
+            self.history_proceed()
+            return
+
+        root = self.filename_root(filebase)
+        filename = '{}{}'.format(root, self.devpostfix)
+        if filename in self.history:
+            return
+
+        if filebase.endswith(self.devpostfix):
+            self.history.add('{}{}'.format(filebase, ext))
+            self.proceed(event.src_path)
+            return
+
+    def history_proceed(self):
+        for filename in self.history:
+            src_path = self.absolute_path(filename)
+            self.proceed(src_path)
+
+    def load_history(self):
+        if not os.path.exists(HISTORY_FILEPATH):
+            msg = '\nThere is no {} file to load.'
+            logging.warning(msg.format(HISTORY_FILENAME))
+            return
+
+        missing = set()
+        with open(HISTORY_FILEPATH, 'r') as f:
+            for filename in f.read().split():
+                filepath = self.absolute_path(filename)
+                if os.path.exists(filepath):
+                    self.history.add(filename)
+                else:
+                    missing.add(filepath)
+        if missing:
+            msg = '\n{} - following files don\'t exist:\n{}\n'
+            msg = msg.format(HISTORY_FILENAME, '\n'.join(missing))
+            logging.warning(msg)
+        if self.history:
+            filenames = '\n'.join(self.history)
+            msg = '\n\nFollowing filenames from {} loaded:\n{}\n'
+            msg = msg.format(HISTORY_FILENAME, filenames)
+            logging.info(msg)
+
+    def save_history(self):
+        with open(HISTORY_FILEPATH, 'w') as f:
+            filenames = '\n'.join(self.history)
+            f.write(filenames)
+        filenames = '\n'.join(self.history)
+        msg = '\nFollowing filenames saved into {}:\n{}'
+        msg = msg.format(HISTORY_FILENAME, filenames)
+        logging.info(msg)
+
+    def absolute_path(self, filename):
+        return '{}/{}'.format(HERE, filename)
+
+    def filename_root(self, filename):
+        root = filename
+        for postfix in self.postfixes:
+            root = root.replace(postfix, '')
+        return root
+
+    def proceed(self, src_path):
+        self.src_path = src_path
+        self.file_vars()
+        for func in self.funcs_sequence:
+            if not self.passed(func):
+                break
+        else:
+            msg = '\n{}...OK'.format(self.src_path)
+            logging.info(msg)
+
+    def file_vars(self):
+        self.file_path()
+        self.filebase, self.ext = self.filename_splitext(self.src_path)
+
+    def file_path(self):
+        self.path = os.path.dirname(self.src_path)
+
+    def filename_splitext(self, src_path):
+        filename = os.path.basename(src_path)
+        return os.path.splitext(filename)
+
+    def passed(self, func):
+        try:
+            func()
+        except Exception as e:
+            msg = ERRORS.get(type(e))
+            msg = msg.format(self.src_path, e.message)
+            logging.error(msg)
+            return False
+        return True
 
     def parse_json(self):
         json_filename = '{}.json'.format(self.filebase)
-        with open(os.path.join(self.path, json_filename), 'r') as fjson: 
+        with open(os.path.join(self.path, json_filename), 'r') as fjson:
             self.data = json.load(fjson, object_hook=object_hook)
 
     def prepare_html(self):
@@ -139,6 +231,7 @@ class LivePremailer():
         'directory': None,
         'reloadDelay': 1000,
         'online': 'true',
+        'logLevel': 'silent',
         'files': HERE,
     }
 
@@ -158,6 +251,15 @@ class LivePremailer():
         sub_parser.add_argument('--livepostfix', nargs='?', default='_live',
                                 help='Postfix which should be used to name\
                                       files with live preview')
+        sub_parser.add_argument('--loadhistory', action='store_true',
+                                help='lpremailer will load all paths located\
+                                      in {} file to memory and rerender them\
+                                      everytime change in any file occurs'
+                                      .format(HISTORY_FILENAME))
+        sub_parser.add_argument('--savehistory', action='store_true',
+                                help='lpremailer will save all dev file paths\
+                                      recorded during development in {} file'
+                                      .format(HISTORY_FILENAME))
 
         init_help = 'Create json files for htmls with provided\
                      postfix in current directory'
@@ -180,8 +282,9 @@ class LivePremailer():
         paths = self.observe_paths()
         self.observer = PollingObserver()
         self.observer.should_keep_running()
+        self.observer.handler = RenderHandler(self.args)
         for path in paths:
-            self.observer.schedule(RenderHandler(self.args), path, recursive=True)
+            self.observer.schedule(self.observer.handler, path, recursive=True)
         self.observer.start()
 
     def update_bsync_params(self):
@@ -208,6 +311,8 @@ class LivePremailer():
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
+            if self.args.savehistory:
+                self.observer.handler.save_history()
             self.observer.stop()
             self.bsync.kill()
         self.observer.join()

@@ -117,7 +117,7 @@ And following templates:
 {% endraw %}
 ```
 
-You have to remember that live premailer script operates in path where is executed. So if you want to create premailed template you have to be in the console under the same path where your devs templates exists, so:
+You have to remember that live premailer script operates in path where is executed. So if you want to create premailed template you have to be in the console under the same path where your dev templates exists, so:
 
 ```
 myproject
@@ -129,7 +129,7 @@ myproject
 │   └── js
 └── templates
     └── mail <---- in our case here
-        ├── greetings_dev.html
+        ├── greetings_dev.html <---- because that's a dev template
         ├── _mail_footer.html
         └── _mail_header.html
 ```
@@ -162,7 +162,7 @@ Next step is run simple server based on ``browsersync`` package:
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject 
 ```
 
-``--staticdir`` is an option needed for displaying images, because browsers don't allow to do it (CORS). It should point to path where ``static`` directory is located.
+``--staticdir`` is an option needed for css files which dev templates use and for displaying images, because browsers don't allow to do it (CORS). It should point to path where ``static`` directory is located.
 
 After that operation browser should run and display listing of all files in current directory. At this point we don't have our "live" html to preview. To do that please follow next steps.
 
@@ -200,7 +200,9 @@ So for developing you can go to (or click ``greetings_dev_live.html`` on a brows
 
 [http://localhost:3000/greetings_dev_live.html](http://localhost:3000/greetings_dev_live.html)
 
-and see the result. Each edit of ``greetings_dev.html`` and ``greetings.json`` file reloads preview.
+and see the result. 
+
+Each edit of ``greetings_dev.html``, ``greetings.json`` and static files rebuilds mail templates and reloads preview.
 
 Debug
 -----
@@ -215,13 +217,15 @@ One of variables is missing in your json:
 or tell you that everything is fine:
 
 ```
-Everthing is OK
+/home/turkus/programming/myproject/templates/mail/greetings_dev.html...OK
 ```
 
 After completing all variables in your json file your live preview will adjust these changes automatically.
 
 Configuration
 -------------
+
+###Postfixes
 
 You can define your own devpostfix (default is ``_dev``) and livepostfix (default is ``_live``), by using proper options:
 
@@ -234,19 +238,37 @@ and according to init:
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --devpostfix=_whateverdev --livepostfix=_whateverlive
 ```
 
+###History
+
+To rerender mail templates when editing css or templates they include, you have to add to cache some dev templates. You can do it by saving once one of the dev templates first and then operate on css or templates it includes OR you can use following parameters:
+
+    - --loadhistory - if you have ``lpremailer.history`` located in directory where you run ``lpremailer``, then it loads all filenames from it to the cache
+    - --savehistory - everytime you "exit" ``lpremailer`` (CTRL+C) all dev template filenames stored in a cache will be saved in ``lpremailer.history`` file
+
+```bash
+$ lpremailer runserver --staticdir=/home/turkus/programming/myproject --loadhistory --savehistory
+```
+
+so using these parameters ``lpremailer`` will rerender all templates which dev representation is stored cache.
+
+Example of ``/home/turkus/programming/myproject/templates/mail/lpremailer.history`` file:
+
+```
+greetings_dev.html
+```
+
 Troubleshooting
 ---------------
 
 If you run init with custom devpostfix then use the same when running server. Otherwise it won't work.
 
+For including templates there is a need to use underscore ``_``, so as in the example above we should do it in this way: ``_mail_header.html``.
+
 Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}`` (see examples above).
+
 
 
 To be continued...
 ------------------
 
-- rerender templates which include other templates after their edit
-- rerender after editing css files
 - create instant schema in json files according to variables in templates
-- bulk render
-- use other template engines
