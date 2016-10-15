@@ -240,8 +240,8 @@ $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --devpostf
 
 To rerender mail templates when editing css or templates they include, you have to add to cache some dev templates. You can do it by saving once one of the dev templates first and then operate on css or templates it includes OR you can use following parameters:
 
-    - --loadhistory - if you have ``lpremailer.history`` located in directory where you run ``lpremailer``, then it loads all filenames from it to the cache
-    - --savehistory - everytime you "exit" ``lpremailer`` (CTRL+C) all dev template filenames stored in a cache will be saved in ``lpremailer.history`` file
+ - --loadhistory - if you have ``lpremailer.history`` located in directory where you run ``lpremailer``, then it loads all filenames from it to the cache
+ - --savehistory - everytime you "exit" ``lpremailer`` (CTRL+C) all dev template filenames stored in a cache will be saved in ``lpremailer.history`` file
 
 ```bash
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --loadhistory --savehistory
