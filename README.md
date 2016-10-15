@@ -44,7 +44,7 @@ $ sudo npm install browser-sync@2.17.2 -g
 Let's do it!
 ------------
 
-Let's consider this simple application structure:
+Let's consider this simple application structure (full example [here](https://github.com/turkus/live-premailer/tree/master/examples)):
 
 ```
 myproject
@@ -77,11 +77,10 @@ And following templates:
         <table class="container">
             <tr class="header">
                 <td class="logo">
-                    <a href="http://example.com">
-                        <img src="{{ request.static_url('static/img/mail/logo.jpg') }}" alt="Live premailer" width="128" height="33">
+                    <a href="http://python.org">
+                        <img src="{{ request.static_url('static/img/mail/logo.jpg') }}" alt="Live premailer">
                     </a>
                 </td>
-                <td class="url"><a href="http://example.com">example.com</a></td>
             </tr>
             <tr>
 {% endraw %}
@@ -109,7 +108,7 @@ And following templates:
 {% raw %}
             </tr>
             <tr>
-                Copyright - turkus
+                <td>Copyright - turkus</td>
             </tr>
         </table>
     </body>
