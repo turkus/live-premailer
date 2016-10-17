@@ -6,10 +6,13 @@ import subprocess
 import sys
 import time
 
+import six
 from jinja2 import FileSystemLoader
 from jinja2.environment import Environment
-from jinja2.exceptions import TemplateSyntaxError, UndefinedError
+from jinja2.exceptions import (
+        TemplateNotFound, TemplateSyntaxError, UndefinedError)
 from premailer import transform
+from premailer.premailer import ExternalNotFoundError
 from six import string_types
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
@@ -26,10 +29,12 @@ HISTORY_FILENAME = 'lpremailer.history'
 HISTORY_FILEPATH = '{}/{}'.format(HERE, HISTORY_FILENAME)
 
 ERRORS = {
-    AttributeError: '\n{}\nBad value for key in your json:\n{}\n',
-    ValueError: '\n{}\nYour json file is invalid:\n{}\n',
-    TemplateSyntaxError: '\n{}\nSomething is wrong with your template:\n{}\n',
-    UndefinedError: '\n{}\nOne of variables is missing in your json::\n{}\n',
+    AttributeError: 'Bad value for key in your json:',
+    ExternalNotFoundError: 'Included file or path doesn\'t exist:',
+    TemplateNotFound: 'Following template not found:',
+    TemplateSyntaxError: 'Something is wrong with your template:',
+    UndefinedError: 'One of variables is missing in your json:',
+    ValueError: 'Your json file is invalid:',
 }
 
 
@@ -192,8 +197,23 @@ class RenderHandler(FileSystemEventHandler):
         try:
             func()
         except Exception as e:
-            msg = ERRORS.get(type(e))
-            msg = msg.format(self.src_path, e.message)
+            error_type = type(e)
+            if six.PY3:
+                from json.decoder import JSONDecodeError
+                if error_type == JSONDecodeError:
+                    info = 'Your json file is invalid:'
+                    msg = '\n{}\n{}\n{}: line {} column {} char({})\n'
+                    msg = msg.format(self.src_path, info, e.msg, e.lineno,
+                                     e.colno, e.pos)
+                    logging.error(msg)
+                    return False
+            if hasattr(e, 'message'):
+                e_message = e.message
+            else:
+                e_message = ', '.join(e.args)
+            msg = ERRORS.get(error_type)
+            msg = '\n{{}}\n{}\n{{}}\n'.format(msg)
+            msg = msg.format(self.src_path, e_message)
             logging.error(msg)
             return False
         return True
@@ -227,14 +247,16 @@ class RenderHandler(FileSystemEventHandler):
 
 
 class LivePremailer():
-    BSYNC_PARAMS = {
-        'server': None,
-        'directory': None,
-        'reloadDelay': 1000,
-        'online': 'true',
-        'logLevel': 'silent',
-        'files': HERE,
-    }
+    def __init__(self):
+        self.observer_paths = {HERE}
+        self.bsync_params = {
+            'server': None,
+            'directory': None,
+            'reloadDelay': 1000,
+            'online': 'true',
+            'logLevel': 'silent',
+            'files': HERE,
+        }
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
@@ -276,28 +298,28 @@ class LivePremailer():
             JsonGenerator(self.args.devpostfix).generate()
             sys.exit(1)
 
-    def observe_paths(self):
-        return self.BSYNC_PARAMS['files'].split(',')
-
     def start_observer(self):
-        paths = self.observe_paths()
         self.observer = PollingObserver()
         self.observer.should_keep_running()
         self.observer.handler = RenderHandler(self.args)
-        for path in paths:
-            self.observer.schedule(self.observer.handler, path, recursive=True)
+        for path in self.observer_paths:
+            self.observer.schedule(self.observer.handler,
+                                   path, recursive=True)
         self.observer.start()
 
-    def update_bsync_params(self):
+    def update_params(self):
         if not os.path.exists(self.args.staticdir):
             logging.warning('Static files won\'t be maintained/served.')
             return
-        files = ','.join((self.BSYNC_PARAMS['files'], self.args.staticdir))
-        self.BSYNC_PARAMS['files'] = files
-        self.BSYNC_PARAMS['ss'] = self.args.staticdir
+        files = '!**/*.less,!**/*.sass,!**/*.scss'
+        files = (self.bsync_params['files'], self.args.staticdir, files)
+        self.bsync_params['files'] = ','.join(files)
+        self.bsync_params['ss'] = self.args.staticdir
+        self.observer_paths.add(self.args.staticdir)
 
     def bsync_command(self):
-        return 'browser-sync start {}'.format(parse_params(self.BSYNC_PARAMS))
+        return 'browser-sync start {}'\
+               .format(parse_params(self.bsync_params))
 
     def run_bsync(self):
         self.bsync = subprocess.Popen(self.bsync_command(), shell=True)
@@ -305,7 +327,7 @@ class LivePremailer():
     def run(self):
         self.parse_args()
         self.json_files()
-        self.update_bsync_params()
+        self.update_params()
         self.start_observer()
         self.run_bsync()
         try:
