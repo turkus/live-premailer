@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name='live-premailer',
     packages=['lpremailer'],
-    version='0.1.6',
+    version='0.1.7',
     description='Live premailer for jinja2 templates',
     author='turkus',
     author_email='wojciechrola@wp.pl',

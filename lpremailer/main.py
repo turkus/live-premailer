@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import time
+import urllib
 
 import six
 from jinja2 import FileSystemLoader
@@ -45,6 +46,12 @@ def parse_params(params):
         for key, value in params.items()))
 
 
+def unquote(html):
+    if six.PY3:
+        return urllib.parse.unquote(html)
+    return urllib.unquote(html)
+
+
 def object_hook(obj):
     result = {}
     for key, value in obj.items():
@@ -83,6 +90,7 @@ class RenderHandler(FileSystemEventHandler):
 
     def __init__(self, cmd_args):
         self.history = set()
+        self.history_excluded = set()
         if cmd_args.loadhistory:
             self.load_history()
         self.devpostfix = cmd_args.devpostfix
@@ -139,6 +147,9 @@ class RenderHandler(FileSystemEventHandler):
         missing = set()
         with open(HISTORY_FILEPATH, 'r') as f:
             for filename in f.read().split():
+                if filename.startswith('#'):
+                    self.history_excluded.add(filename)
+                    continue
                 filepath = self.absolute_path(filename)
                 if os.path.exists(filepath):
                     self.history.add(filename)
@@ -155,8 +166,9 @@ class RenderHandler(FileSystemEventHandler):
             logging.info(msg)
 
     def save_history(self):
+        filenames = self.history.union(self.history_excluded)
+        filenames = '\n'.join(filenames)
         with open(HISTORY_FILEPATH, 'w') as f:
-            filenames = '\n'.join(self.history)
             f.write(filenames)
         filenames = '\n'.join(self.history)
         msg = '\nFollowing filenames saved into {}:\n{}'
@@ -233,8 +245,9 @@ class RenderHandler(FileSystemEventHandler):
         filename = self.filebase.replace(self.devpostfix, '')
         filepath = os.path.join(self.path, '{}.html'.format(filename))
         transformed = transform(self.html)
+        unquoted = unquote(transformed)
         with open(filepath, 'w+') as f:
-            f.write(transformed)
+            f.write(unquoted)
 
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)

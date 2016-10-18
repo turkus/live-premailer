@@ -257,6 +257,13 @@ Example of ``/home/turkus/programming/myproject/templates/mail/lpremailer.histor
 greetings_dev.html
 ```
 
+You can also exclude some files from parsing using ``#`` on the beginning of line with dev template filename:
+
+```
+greetings_dev.html
+#excluded_dev.html
+```
+
 Troubleshooting
 ---------------
 
