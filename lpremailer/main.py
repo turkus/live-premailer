@@ -5,83 +5,25 @@ import os
 import subprocess
 import sys
 import time
-import urllib
 
-import six
-from jinja2 import FileSystemLoader
-from jinja2.environment import Environment
-from jinja2.exceptions import (
-        TemplateNotFound, TemplateSyntaxError, UndefinedError)
+from jinja2 import Environment, FileSystemLoader
 from premailer import transform
-from premailer.premailer import ExternalNotFoundError
-from six import string_types
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
+
+from .exceptions import ERRORS, LiveBaseError
+from .utils import HERE, JsonGenerator, parse_params, unquote, object_hook
 
 
 logging.basicConfig(level=logging.INFO)
 
-
-HERE = os.getcwd()
 PARSER_INIT = 'init'
 PARSER_RUN = 'runserver'
 
 HISTORY_FILENAME = 'lpremailer.history'
 HISTORY_FILEPATH = '{}/{}'.format(HERE, HISTORY_FILENAME)
 
-ERRORS = {
-    AttributeError: 'Bad value for key in your json:',
-    ExternalNotFoundError: 'Included file or path doesn\'t exist:',
-    TemplateNotFound: 'Following template not found:',
-    TemplateSyntaxError: 'Something is wrong with your template:',
-    UndefinedError: 'One of variables is missing in your json:',
-    ValueError: 'Your json file is invalid:',
-}
 
-
-## UTILS ##
-def parse_params(params):
-    return ' '.join((
-        '--{}={}'.format(key, value) if value else '--{}'.format(key)
-        for key, value in params.items()))
-
-
-def unquote(html):
-    if six.PY3:
-        return urllib.parse.unquote(html)
-    return urllib.unquote(html)
-
-
-def object_hook(obj):
-    result = {}
-    for key, value in obj.items():
-        if isinstance(value, string_types) and u'lambda' in value:
-            result[key] = eval(value)
-        else:
-            result[key] = value
-    return result
-
-
-class JsonGenerator():
-    def __init__(self, devpostfix):
-        self.devpostfix = devpostfix
-
-    def generate(self):
-        for filename in os.listdir(HERE):
-            filebase, ext = os.path.splitext(filename)
-            if filebase.endswith(self.devpostfix):
-                self.create_file(filebase)
-
-    def create_file(self, filebase):
-        filebase = filebase.replace(self.devpostfix, '')
-        filename = '{}{}.json'.format(filebase, self.devpostfix)
-        filepath = os.path.join(HERE, filename)
-        if not os.path.exists(filepath):
-            with open(filepath, 'w+') as fjson:
-                fjson.write('{}')
-
-
-## MAIN ##
 class RenderHandler(FileSystemEventHandler):
     EXT_CSS = '.css'
     EXT_HTML = '.html'
@@ -209,24 +151,7 @@ class RenderHandler(FileSystemEventHandler):
         try:
             func()
         except Exception as e:
-            error_type = type(e)
-            if six.PY3:
-                from json.decoder import JSONDecodeError
-                if error_type == JSONDecodeError:
-                    info = 'Your json file is invalid:'
-                    msg = '\n{}\n{}\n{}: line {} column {} char({})\n'
-                    msg = msg.format(self.src_path, info, e.msg, e.lineno,
-                                     e.colno, e.pos)
-                    logging.error(msg)
-                    return False
-            if hasattr(e, 'message'):
-                e_message = e.message
-            else:
-                e_message = ', '.join(e.args)
-            msg = ERRORS.get(error_type)
-            msg = '\n{{}}\n{}\n{{}}\n'.format(msg)
-            msg = msg.format(self.src_path, e_message)
-            logging.error(msg)
+            ERRORS.get(type(e), LiveBaseError)(e, self.src_path).log()
             return False
         return True
 
