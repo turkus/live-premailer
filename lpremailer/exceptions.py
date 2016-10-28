@@ -69,7 +69,7 @@ class LiveValueError(LiveBaseError):
 
 class LiveUnicodeDecodeError(LiveBaseError):
     MSG = """
-    I encountered decoding error:
+    I encountered a decoding error:
     UnicodeDecodeError: 'ascii' codec can't decode byte...
     please revert your last change, hope that helps :)
     """
@@ -77,7 +77,7 @@ class LiveUnicodeDecodeError(LiveBaseError):
 
 class LiveUnicodeEncodeError(LiveBaseError):
     MSG = """
-    I encountered encoding error:
+    I encountered an encoding error:
     UnicodeEncodeError: 'ascii' codec can't encode byte...
     please revert your last change, hope that helps :)
     """

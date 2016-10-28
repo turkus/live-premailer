@@ -9,7 +9,7 @@ setup(
     author='turkus',
     author_email='wojciechrola@wp.pl',
     url='https://github.com/turkus/live-premailer',
-    download_url='https://github.com/turkus/live-premailer/tarball/0.1',
+    download_url='https://github.com/turkus/live-premailer/tarball/0.1.8',
     keywords=['live', 'browsersync', 'jinja2', 'premailer'],
     entry_points={
         'console_scripts': [
