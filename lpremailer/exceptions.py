@@ -103,5 +103,8 @@ ERRORS = {
     UnicodeEncodeError: LiveUnicodeEncodeError,
 }
 if six.PY3:
-    from json.decoder import JSONDecodeError
-    ERRORS[JSONDecodeError] = LiveJSONDecodeError
+    try:
+        from json.decoder import JSONDecodeError
+        ERRORS[JSONDecodeError] = LiveJSONDecodeError
+    except ImportError:
+        pass
