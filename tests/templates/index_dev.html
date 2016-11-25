@@ -1,0 +1,17 @@
+{% include 'templates/_partial.html' %}
+{% raw %}
+  {% for item in items %}
+    {{ item.run('whatever') }}
+    {{ item.variable }}
+    {{ item.nothing.something.else }}
+  {% endfor %}
+  {% if condition %}
+    Whatever
+    {% for item in data %}
+      {{ item.something.run('nobody') }}
+      {{ item.variable }}
+      {{ item.nothing.something.else }}
+    {% endfor %}
+  {% endif %}
+  {{ request.static_url('image.png') }}
+{% endraw %}

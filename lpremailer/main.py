@@ -12,10 +12,12 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from .exceptions import ERRORS, LiveBaseError
-from .utils import HERE, JsonGenerator, parse_params, unquote, object_hook
+from .utils import JsonGenerator, parse_params, unquote, object_hook
 
 
 logging.basicConfig(level=logging.INFO)
+
+HERE = os.getcwd()
 
 PARSER_INIT = 'init'
 PARSER_RUN = 'runserver'
@@ -31,12 +33,13 @@ class RenderHandler(FileSystemEventHandler):
     EXTENSIONS = (EXT_CSS, EXT_HTML, EXT_JSON)
 
     def __init__(self, cmd_args):
+        self.cmd_args = cmd_args
         self.history = set()
         self.history_excluded = set()
-        if cmd_args.loadhistory:
+        if self.cmd_args.loadhistory:
             self.load_history()
-        self.devpostfix = cmd_args.devpostfix
-        self.livepostfix = cmd_args.livepostfix
+        self.devpostfix = self.cmd_args.devpostfix
+        self.livepostfix = self.cmd_args.livepostfix
         self.postfixes = (self.livepostfix, self.devpostfix)
         self.j2_loader = FileSystemLoader('.')
         self.j2_env = Environment(loader=self.j2_loader)
@@ -127,8 +130,7 @@ class RenderHandler(FileSystemEventHandler):
         return root
 
     def proceed(self, src_path):
-        self.src_path = src_path
-        self.file_vars()
+        self.file_vars(src_path)
         for func in self.funcs_sequence:
             if not self.passed(func):
                 break
@@ -136,7 +138,8 @@ class RenderHandler(FileSystemEventHandler):
             msg = '\n{}...OK'.format(self.src_path)
             logging.info(msg)
 
-    def file_vars(self):
+    def file_vars(self, src_path):
+        self.src_path = src_path
         self.file_path()
         self.filebase, self.ext = self.filename_splitext(self.src_path)
 
@@ -196,6 +199,23 @@ class LivePremailer():
             'files': HERE,
         }
 
+    def append_arguments(self, parser):
+        parser.add_argument('--devpostfix', nargs='?', default='_dev',
+                            help='Postfix which should be used to search\
+                                  dev templates')
+        parser.add_argument('--livepostfix', nargs='?', default='_live',
+                            help='Postfix which should be used to name\
+                                  files with live preview')
+        parser.add_argument('--loadhistory', action='store_true',
+                            help='lpremailer will load all paths located\
+                                  in {} file to memory and rerender them\
+                                  everytime change in any file occurs'
+                                  .format(HISTORY_FILENAME))
+        parser.add_argument('--savehistory', action='store_true',
+                            help='lpremailer will save all dev file paths\
+                                  recorded during development in {} file'
+                                  .format(HISTORY_FILENAME))
+
     def parse_args(self):
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers()
@@ -206,34 +226,21 @@ class LivePremailer():
         sub_parser.add_argument('--staticdir', nargs='?',
                                 help='Path to directory where static folder\
                                       is located')
-        sub_parser.add_argument('--devpostfix', nargs='?', default='_dev',
-                                help='Postfix which should be used to search\
-                                      dev templates')
-        sub_parser.add_argument('--livepostfix', nargs='?', default='_live',
-                                help='Postfix which should be used to name\
-                                      files with live preview')
-        sub_parser.add_argument('--loadhistory', action='store_true',
-                                help='lpremailer will load all paths located\
-                                      in {} file to memory and rerender them\
-                                      everytime change in any file occurs'
-                                      .format(HISTORY_FILENAME))
-        sub_parser.add_argument('--savehistory', action='store_true',
-                                help='lpremailer will save all dev file paths\
-                                      recorded during development in {} file'
-                                      .format(HISTORY_FILENAME))
-
+        self.append_arguments(sub_parser)
         init_help = 'Create json files for htmls with provided\
                      postfix in current directory'
         sub_parser = subparsers.add_parser(PARSER_INIT, help=init_help)
         sub_parser.set_defaults(which=PARSER_INIT)
-        sub_parser.add_argument('--devpostfix', nargs='?', default='_dev',
-                                help='Postfix which should be used to search\
-                                      dev templates')
+        sub_parser.add_argument('--force', action='store_true',
+                                help='Overwrites json files')
+        self.append_arguments(sub_parser)
+
         self.args = parser.parse_args()
 
     def json_files(self):
+        handler = RenderHandler(self.args)
         if self.args.which == PARSER_INIT:
-            JsonGenerator(self.args.devpostfix).generate()
+            JsonGenerator(handler, HERE).generate()
             sys.exit(1)
 
     def start_observer(self):

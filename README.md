@@ -2,6 +2,7 @@ Live premailer
 ==============
 
 [![Build Status](https://travis-ci.org/turkus/live-premailer.svg?branch=master)](https://travis-ci.org/turkus/live-premailer)
+[![PyPI Version](https://img.shields.io/pypi/v/live-premailer.svg)](https://pypi.python.org/pypi/live-premailer)
 
 <pre>
 <table>
@@ -147,7 +148,7 @@ At the beginning we need to run init:
 $ lpremailer init
 ```
 
-after that operation for each ``<template>_dev.html`` json file will be created. So our templates directory structure looks like this:
+after that operation for each ``<template>_dev.html`` json file with template feed would be generated. So our ``templates`` directory structure should look like this:
 
 ```
 └── templates
@@ -172,7 +173,22 @@ After that operation browser should run and display listing of all files in curr
 
 We see that we have in our ``greetings_dev.html`` variable ``{{ name }}``, but we have also in our ``_mail_header.html`` a function called ``request.static_url('static/img/logo.jpg')``.  
 
-So how to handle it? Just by editing json file ``greetings_dev.json``:
+So let's take a look at json file ``greetings_dev.json``:
+
+```json
+{
+    "name": "turkus",
+    "request": {
+        "static_url": "lambda x: \"something\""
+    }
+} 
+```
+
+When we are talking about simple variables like strings, numbers everything is obvious, but when we have a function, sometimes we pass different arguments, especially when serving statics. 
+
+So what python ``lambda`` does here?
+
+To clarifying let's change it to:
 
 ```json
 {
@@ -183,10 +199,7 @@ So how to handle it? Just by editing json file ``greetings_dev.json``:
 } 
 ```
 
-Now focus! When we are talking about simple variables like strings, numbers everything is obvious, but when we have a function, sometimes we pass different arguments, especially when serving statics. 
-
-So what python ``lambda`` does here?
-In our case it just takes argument and returns it. So in "live" template instead of:
+Now, it just takes argument and returns it, so in "live" template instead of:
 
 ```html
 <img src="request.static_url('static/img/logo.jpg')" alt="Live premailer" width="128" height="33">
@@ -227,6 +240,14 @@ or tell you that everything is fine:
 Configuration
 -------------
 
+###Json files generation
+If you want to overwrite existing json files, use ``--force`` option:
+
+
+```bash
+$ lpremailer init --force
+```
+
 ###Postfixes
 
 You can define your own devpostfix (default is ``_dev``) and livepostfix (default is ``_live``), by using proper options:
@@ -244,8 +265,8 @@ $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --devpostf
 
 To rerender mail templates when editing css or templates they include, you have to add to cache some dev templates. You can do it by saving once one of the dev templates first and then operate on css or templates it includes OR you can use following parameters:
 
- - --loadhistory - if you have ``lpremailer.history`` located in directory where you run ``lpremailer``, then it loads all filenames from it to the cache
- - --savehistory - everytime you "exit" ``lpremailer`` (CTRL+C) all dev template filenames stored in a cache will be saved in ``lpremailer.history`` file
+ - ``--loadhistory`` - if you have ``lpremailer.history`` located in directory where you run ``lpremailer``, then it loads all filenames from it to the cache
+ - ``--savehistory`` - everytime you "exit" ``lpremailer`` (CTRL+C) all dev template filenames stored in a cache will be saved in ``lpremailer.history`` file
 
 ```bash
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --loadhistory --savehistory
@@ -280,4 +301,4 @@ Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw 
 To be continued...
 ------------------
 
-- create instant schema in json files according to variables in templates
+- create txt mail templates according to html templates

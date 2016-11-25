@@ -8,7 +8,7 @@
             <tr class="header">
                 <td class="logo">
                     <a href="http://python.org">
-                        <img src="%7B%7B%20request.static_url('static/img/mail/logo.jpg')%20%7D%7D" alt="Live premailer">
+                        <img src="{{ request.static_url('static/img/mail/logo.png') }}" alt="Live premailer">
                     </a>
                 </td>
             </tr>
@@ -18,7 +18,7 @@
 <td class="main-content" colspan="2">
     <table>
         <tr>
-            <td class="hi">Hello {{ name }}!</td>
+            <td class="hi" style="font-size:24px">Hello {{ name }}!</td>
         </tr>
     </table>
 </td>
