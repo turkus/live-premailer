@@ -111,6 +111,10 @@ class RenderHandler(FileSystemEventHandler):
             logging.info(msg)
 
     def save_history(self):
+        for filename in self.history:
+            not_excluded = '#{}'.format(filename)
+            if not_excluded in self.history_excluded:
+                self.history_excluded.remove(not_excluded)
         filenames = self.history.union(self.history_excluded)
         filenames = '\n'.join(filenames)
         with open(HISTORY_FILEPATH, 'w') as f:
@@ -165,8 +169,9 @@ class RenderHandler(FileSystemEventHandler):
 
     def prepare_html(self):
         filepath = os.path.join(self.path, '{}.html'.format(self.filebase))
-        with open(filepath, 'r') as f:
-            template = self.j2_env.from_string(f.read())
+        with open(filepath, 'rb') as f:
+            data = f.read().decode('utf8')
+            template = self.j2_env.from_string(data)
             self.html = template.render()
 
     def premail(self):
@@ -174,8 +179,8 @@ class RenderHandler(FileSystemEventHandler):
         filepath = os.path.join(self.path, '{}.html'.format(filename))
         transformed = transform(self.html)
         unquoted = unquote(transformed)
-        with open(filepath, 'w+') as f:
-            f.write(unquoted)
+        with open(filepath, 'wb+') as f:
+            f.write(unquoted.encode('utf8'))
 
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
@@ -183,8 +188,8 @@ class RenderHandler(FileSystemEventHandler):
         template = self.j2_env.from_string(self.html)
         rendered = template.render(**self.data)
         transformed = transform(rendered)
-        with open(filepath, 'w+') as f:
-            f.write(transformed)
+        with open(filepath, 'wb+') as f:
+            f.write(transformed.encode('utf8'))
 
 
 class LivePremailer():

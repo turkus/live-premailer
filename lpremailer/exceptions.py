@@ -47,6 +47,14 @@ class LiveAttributeError(LiveBaseError):
     MSG = 'Bad value for key in your json:'
 
 
+class LiveTypeError(LiveBaseError):
+    MSG = 'Wrong type of a value:'
+
+
+class LiveValueError(LiveBaseError):
+    MSG = 'Your json file is invalid:'
+
+
 class LiveExternalNotFoundError(LiveBaseError):
     MSG = 'Included file or path doesn\'t exist:'
 
@@ -61,10 +69,6 @@ class LiveTemplateSyntaxError(LiveBaseError):
 
 class LiveUndefinedError(LiveBaseError):
     MSG = 'One of variables is missing in your json:'
-
-
-class LiveValueError(LiveBaseError):
-    MSG = 'Your json file is invalid:'
 
 
 class LiveUnicodeDecodeError(LiveBaseError):
@@ -97,10 +101,11 @@ ERRORS = {
     ExternalNotFoundError: LiveExternalNotFoundError,
     TemplateNotFound: LiveTemplateNotFound,
     TemplateSyntaxError: LiveTemplateSyntaxError,
+    TypeError: LiveTypeError,
     UndefinedError: LiveUndefinedError,
-    ValueError: LiveValueError,
     UnicodeDecodeError: LiveUnicodeDecodeError,
     UnicodeEncodeError: LiveUnicodeEncodeError,
+    ValueError: LiveValueError,
 }
 if six.PY3:
     try:
