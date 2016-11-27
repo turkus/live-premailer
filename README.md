@@ -114,7 +114,7 @@ And following templates:
 {% raw %}
             </tr>
             <tr>
-                <td>Copyright - turkus</td>
+                <td>© Copyright - turkus</td>
             </tr>
         </table>
     </body>
@@ -287,6 +287,16 @@ greetings_dev.html
 #excluded_dev.html
 ```
 
+###Save email templates as text messages
+If you want to generate text version of your email use ``--astext`` option:
+
+
+```bash
+$ lpremailer runserver --staticdir=/home/turkus/programming/myproject --astext
+```
+
+According to our main example you will get the ``greetings_txt.html`` file in the directory you operate. It takes place after saving a ``greetings_dev.html`` file or any connected with (if ``greetings_dev.html`` occurs in the ``lpremailer.history`` file or had been loaded to the cache).
+
 Troubleshooting
 ---------------
 
@@ -295,10 +305,3 @@ If you run init with custom devpostfix then use the same when running server. Ot
 For including templates there is a need to use underscore ``_``, so as in the example above we should do it in this way: ``_mail_header.html``.
 
 Remember about put all jinja2 variables and expressions in ``{% raw %}{% endraw %}`` container. Excluding ``{% extends .. %}`` and ``{% include ... %}`` (see examples above).
-
-
-
-To be continued...
-------------------
-
-- create txt mail templates according to html templates

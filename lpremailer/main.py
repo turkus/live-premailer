@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 
+import html2text
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
 from watchdog.observers.polling import PollingObserver
@@ -43,8 +44,13 @@ class RenderHandler(FileSystemEventHandler):
         self.postfixes = (self.livepostfix, self.devpostfix)
         self.j2_loader = FileSystemLoader('.')
         self.j2_env = Environment(loader=self.j2_loader)
+        self.text_maker = html2text.HTML2Text()
+        self.text_maker.ignore_links = True
+        self.text_maker.ignore_images = True
         self.funcs_sequence = [self.parse_json, self.prepare_html,
                                self.premail, self.live_html]
+        if self.cmd_args.astext:
+            self.funcs_sequence.append(self.html_to_txt)
 
     def on_modified(self, event):
         if event.is_directory:
@@ -179,8 +185,17 @@ class RenderHandler(FileSystemEventHandler):
         filepath = os.path.join(self.path, '{}.html'.format(filename))
         transformed = transform(self.html)
         unquoted = unquote(transformed)
+        encoded = unquoted.encode('utf8')
         with open(filepath, 'wb+') as f:
-            f.write(unquoted.encode('utf8'))
+            f.write(encoded)
+
+    def html_to_txt(self):
+        filename = self.filebase.replace(self.devpostfix, '')
+        filepath = os.path.join(self.path, '{}_txt.html'.format(filename))
+        text = self.text_maker.handle(self.html)
+        encoded = text.encode('utf8')
+        with open(filepath, 'wb+') as f:
+            f.write(encoded)
 
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
@@ -188,8 +203,9 @@ class RenderHandler(FileSystemEventHandler):
         template = self.j2_env.from_string(self.html)
         rendered = template.render(**self.data)
         transformed = transform(rendered)
+        encoded = transformed.encode('utf8')
         with open(filepath, 'wb+') as f:
-            f.write(transformed.encode('utf8'))
+            f.write(encoded)
 
 
 class LivePremailer():
@@ -220,6 +236,9 @@ class LivePremailer():
                             help='lpremailer will save all dev file paths\
                                   recorded during development in {} file'
                                   .format(HISTORY_FILENAME))
+        parser.add_argument('--astext', action='store_true',
+                            help='lpremailer will save all dev files\
+                                  as simple txt messages')
 
     def parse_args(self):
         parser = argparse.ArgumentParser()

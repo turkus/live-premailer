@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import collections
 import json
 import logging
-import six
 import unittest
 
+import pytest
+import six
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
 
@@ -17,16 +17,12 @@ from lpremailer.exceptions import (LiveAttributeError, LiveExternalNotFoundError
 from lpremailer.utils import object_hook
 
 
-CmdArgs = collections.namedtuple('CmdArgs',
-                                 ['loadhistory', 'devpostfix', 'livepostfix'])
-
-
 class TestErrors(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         j2_loader = FileSystemLoader('.')
-        cmd_args = CmdArgs(loadhistory=False, devpostfix='_dev',
-                           livepostfix='_live')
+        cmd_args = pytest.CmdArgs(loadhistory=False, devpostfix='_dev',
+                                  livepostfix='_live', astext=False)
         cls.j2_env = Environment(loader=j2_loader)
         cls.render_handler = RenderHandler(cmd_args)
         cls.render_handler.src_path = '/home/turkus/dummy'
