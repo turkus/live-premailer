@@ -240,7 +240,7 @@ or tell you that everything is fine:
 Configuration
 -------------
 
-###Json files generation
+### Json files generation
 If you want to overwrite existing json files, use ``--force`` option:
 
 
@@ -248,7 +248,7 @@ If you want to overwrite existing json files, use ``--force`` option:
 $ lpremailer init --force
 ```
 
-###Postfixes
+### Postfixes
 
 You can define your own devpostfix (default is ``_dev``) and livepostfix (default is ``_live``), by using proper options:
 
@@ -261,7 +261,7 @@ and according to init:
 $ lpremailer runserver --staticdir=/home/turkus/programming/myproject --devpostfix=_whateverdev --livepostfix=_whateverlive
 ```
 
-###History
+### History
 
 To rerender mail templates when editing css or templates they include, you have to add to cache some dev templates. You can do it by saving once one of the dev templates first and then operate on css or templates it includes OR you can use following parameters:
 
@@ -287,7 +287,7 @@ greetings_dev.html
 #excluded_dev.html
 ```
 
-###Save email templates as text messages
+### Save email templates as text messages
 If you want to generate text version of your email use ``--astext`` option:
 
 
