@@ -7,6 +7,7 @@ import sys
 import time
 
 import html2text
+from babel.support import Translations
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
 from watchdog.observers.polling import PollingObserver
@@ -17,6 +18,7 @@ from .utils import JsonGenerator, parse_params, unquote, object_hook
 
 
 logging.basicConfig(level=logging.INFO)
+translations = Translations.load()
 
 HERE = os.getcwd()
 
@@ -43,7 +45,9 @@ class RenderHandler(FileSystemEventHandler):
         self.livepostfix = self.cmd_args.livepostfix
         self.postfixes = (self.livepostfix, self.devpostfix)
         self.j2_loader = FileSystemLoader('.')
-        self.j2_env = Environment(loader=self.j2_loader)
+        self.j2_env = Environment(
+            loader=self.j2_loader, extensions=["jinja2.ext.i18n"])
+        self.j2_env.install_gettext_translations(translations)
         self.text_maker = html2text.HTML2Text()
         self.text_maker.ignore_links = True
         self.text_maker.ignore_images = True

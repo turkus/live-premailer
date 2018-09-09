@@ -3,6 +3,7 @@
 *.swp
 
 .cache
+.pytest_cache
 .tox
 MANIFEST
 dist/

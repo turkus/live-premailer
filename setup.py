@@ -28,7 +28,7 @@ setup(
     },
     install_requires=[
         'jinja2', 'premailer', 'watchdog', 'six', 'RandomWords',
-        'html2text',
+        'html2text', 'Babel'
     ],
     classifiers=[
         'Programming Language :: Python :: 2.7',
@@ -36,5 +36,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )
