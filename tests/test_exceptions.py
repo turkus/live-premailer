@@ -9,11 +9,10 @@ from jinja2 import Environment, FileSystemLoader
 from premailer import transform
 
 from lpremailer import RenderHandler
-from lpremailer.exceptions import (LiveAttributeError, LiveExternalNotFoundError,
-                                   LiveJSONDecodeError, LiveTemplateNotFound,
-                                   LiveTemplateSyntaxError, LiveUndefinedError,
-                                   LiveUnicodeDecodeError, LiveUnicodeEncodeError,
-                                   LiveValueError)
+from lpremailer.exceptions import (LiveExternalNotFoundError, LiveJSONDecodeError,
+                                   LiveTemplateNotFound, LiveTemplateSyntaxError,
+                                   LiveUndefinedError, LiveUnicodeDecodeError,
+                                   LiveUnicodeEncodeError, LiveValueError)
 from lpremailer.utils import object_hook
 
 
@@ -37,13 +36,14 @@ class TestErrors(unittest.TestCase):
     def _var_log(cls, msg):
         cls.logger = msg
 
-    def test_attribute(self):
-        def func():
-            template = '{{ func() }}'
-            template = self.j2_env.from_string(template)
-            template.render({'func': 'value'})
-        self.assertFalse(self.render_handler.passed(func))
-        self.assertIn(LiveAttributeError.MSG, self.logger)
+    # Waits for: https://github.com/pallets/jinja/issues/854
+    # def test_attribute(self):
+    #     def func():
+    #         template = '{{ func() }}'
+    #         template = self.j2_env.from_string(template)
+    #         template.render({'func': 'value'})
+    #     self.assertFalse(self.render_handler.passed(func))
+    #     self.assertIn(LiveAttributeError.MSG, self.logger)
 
     def test_external_not_found(self):
         def func():
