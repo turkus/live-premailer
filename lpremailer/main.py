@@ -275,6 +275,7 @@ class LivePremailer():
     def json_files(self):
         handler = RenderHandler(self.args)
         if self.args.which == PARSER_INIT:
+            JsonGenerator(handler, HERE).generate()
             for root, dirs, files in os.walk(HERE):
                 for _dir in dirs:
                     path = os.path.join(root, _dir)
