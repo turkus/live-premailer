@@ -37,6 +37,7 @@ class RenderHandler(FileSystemEventHandler):
 
     def __init__(self, cmd_args):
         self.cmd_args = cmd_args
+        self.src_dir = HERE
         self.history = set()
         self.history_excluded = set()
         if self.cmd_args.loadhistory:
@@ -57,6 +58,8 @@ class RenderHandler(FileSystemEventHandler):
             self.funcs_sequence.append(self.html_to_txt)
 
     def on_modified(self, event):
+        self.src_dir = HERE
+
         if event.is_directory:
             return
 
@@ -66,6 +69,7 @@ class RenderHandler(FileSystemEventHandler):
 
         if ext != self.EXT_HTML:
             if ext == self.EXT_JSON:
+                self.src_dir = os.path.dirname(event.src_path)
                 filename = '{}.html'.format(filebase)
                 src_path = self.absolute_path(filename)
                 self.proceed(src_path)
@@ -84,7 +88,10 @@ class RenderHandler(FileSystemEventHandler):
             return
 
         if filebase.endswith(self.devpostfix):
-            self.history.add('{}{}'.format(filebase, ext))
+            src_dir = os.path.dirname(event.src_path)
+            relpath = os.path.relpath(src_dir, HERE)
+            self.history.add('{}/{}{}'.format(relpath, filebase, ext))
+
             self.proceed(event.src_path)
             return
 
@@ -135,7 +142,7 @@ class RenderHandler(FileSystemEventHandler):
         logging.info(msg)
 
     def absolute_path(self, filename):
-        return '{}/{}'.format(HERE, filename)
+        return '{}/{}'.format(self.src_dir, filename)
 
     def filename_root(self, filename):
         root = filename
@@ -268,7 +275,10 @@ class LivePremailer():
     def json_files(self):
         handler = RenderHandler(self.args)
         if self.args.which == PARSER_INIT:
-            JsonGenerator(handler, HERE).generate()
+            for root, dirs, files in os.walk(HERE):
+                for _dir in dirs:
+                    path = os.path.join(root, _dir)
+                    JsonGenerator(handler, path).generate()
             sys.exit(1)
 
     def start_observer(self):
