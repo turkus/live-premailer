@@ -1,0 +1,7 @@
+{
+    "request": {
+        "static_url": "lambda x: '/{}'.format(x)"
+    },
+    "name": "guys",
+    "body_guy": "body"
+}

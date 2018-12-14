@@ -1,0 +1,14 @@
+{% include 'partials/_mail_header.html' %}
+{% raw %}
+<td class="main-content" colspan="2">
+    <table>
+        <tr>
+            <td class="hi">Hello {{ name }}!</td>
+        </tr>
+        {% endraw %}
+        {% include 'partials/_inside_body.html' %}
+        {% raw %}
+    </table>
+</td>
+{% endraw %}
+{% include 'partials/_mail_footer.html' %}

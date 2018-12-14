@@ -1,6 +1,6 @@
 {
     "name": "guys",
     "request": {
-    	"static_url": "lambda x: x"
+        "static_url": "lambda x: x"
     }
 }
