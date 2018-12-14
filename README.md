@@ -44,7 +44,7 @@ $ pip install live-premailer
 To provide live preview we need to install also:
 
 ```bash
-$ sudo npm install browser-sync@2.17.2 -g
+$ sudo npm install browser-sync@2.26.3 -g
 ```
 
 Let's do it!
