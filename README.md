@@ -47,6 +47,12 @@ To provide live preview we need to install also:
 $ sudo npm install browser-sync@2.26.3 -g
 ```
 
+On the linux distributions make sure you have `python-dev` (py2) or `python3-dev` (py3) installed - according to the python version you use:
+
+```bash
+$ sudo apt-get install python-dev
+```
+
 Let's do it!
 ------------
 
