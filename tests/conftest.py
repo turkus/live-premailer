@@ -1,8 +1,11 @@
 import collections
+import pytest
 
 
-def pytest_namespace():
+def args_fixture():
     args = ['loadhistory', 'devpostfix', 'livepostfix', 'astext']
-    return {
-        'CmdArgs': collections.namedtuple('CmdArgs', args),
-    }
+    return collections.namedtuple('CmdArgs', args)
+
+
+def pytest_configure():
+    pytest.CmdArgs = args_fixture()

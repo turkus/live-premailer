@@ -211,10 +211,11 @@ class RenderHandler(FileSystemEventHandler):
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
         filepath = os.path.join(self.path, filename)
-        template = self.j2_env.from_string(self.html)
+        transformed = transform(self.html)
+        unquoted = unquote(transformed)
+        template = self.j2_env.from_string(unquoted)
         rendered = template.render(**self.data)
-        transformed = transform(rendered)
-        encoded = transformed.encode('utf8')
+        encoded = rendered.encode('utf8')
         with open(filepath, 'wb+') as f:
             f.write(encoded)
 
