@@ -6,6 +6,7 @@
 .pytest_cache
 .tox
 MANIFEST
+build/
 dist/
 
 env/
