@@ -50,7 +50,6 @@ class RenderHandler(FileSystemEventHandler):
             loader=self.j2_loader, extensions=["jinja2.ext.i18n"])
         self.j2_env.install_gettext_translations(translations)
         self.text_maker = html2text.HTML2Text()
-        self.text_maker.ignore_links = True
         self.text_maker.ignore_images = True
         self.funcs_sequence = [self.parse_json, self.prepare_html,
                                self.premail, self.live_html]
