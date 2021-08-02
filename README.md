@@ -1,7 +1,7 @@
 Live premailer
 ==============
 
-[![Build Status](https://travis-ci.org/turkus/live-premailer.svg?branch=master)](https://travis-ci.org/turkus/live-premailer)
+[![Build Status](https://travis-ci.com/turkus/live-premailer.svg?branch=master)](https://travis-ci.com/turkus/live-premailer)
 [![PyPI Version](https://img.shields.io/pypi/v/live-premailer.svg)](https://pypi.python.org/pypi/live-premailer)
 
 <pre>
