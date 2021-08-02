@@ -193,7 +193,7 @@ class RenderHandler(FileSystemEventHandler):
     def premail(self):
         filename = self.filebase.replace(self.devpostfix, '')
         filepath = os.path.join(self.path, '{}.html'.format(filename))
-        transformed = transform(self.html)
+        transformed = transform(self.html, allow_loading_external_files=True)
         unquoted = unquote(transformed)
         encoded = unquoted.encode('utf8')
         with open(filepath, 'wb+') as f:
@@ -210,7 +210,7 @@ class RenderHandler(FileSystemEventHandler):
     def live_html(self):
         filename = '{}{}.html'.format(self.filebase, self.livepostfix)
         filepath = os.path.join(self.path, filename)
-        transformed = transform(self.html)
+        transformed = transform(self.html, allow_loading_external_files=True)
         unquoted = unquote(transformed)
         template = self.j2_env.from_string(unquoted)
         rendered = template.render(**self.data)
