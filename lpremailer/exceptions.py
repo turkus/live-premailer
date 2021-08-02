@@ -2,8 +2,8 @@ import logging
 
 import six
 from jinja2.exceptions import (
-        TemplateNotFound, TemplateSyntaxError, UndefinedError)
-from premailer.premailer import ExternalNotFoundError
+    TemplateNotFound, TemplateSyntaxError, UndefinedError)
+from premailer.premailer import ExternalFileLoadingError, ExternalNotFoundError
 
 
 logging.basicConfig(level=logging.INFO)
@@ -99,6 +99,7 @@ class LiveJSONDecodeError(LiveBaseError):
 ERRORS = {
     AttributeError: LiveAttributeError,
     ExternalNotFoundError: LiveExternalNotFoundError,
+    ExternalFileLoadingError: LiveExternalNotFoundError,
     TemplateNotFound: LiveTemplateNotFound,
     TemplateSyntaxError: LiveTemplateSyntaxError,
     TypeError: LiveTypeError,
